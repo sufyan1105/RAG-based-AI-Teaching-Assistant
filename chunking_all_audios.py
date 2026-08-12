@@ -12,7 +12,7 @@ for audio in audios:
     if("_" in audio):
         number = audio.split("_")[0]
         name = audio.split("_")[1].split(".mp3")[0]
-        results = model.transcribe(audio = f"audios/{audio}", language = "hi", task = "translate", wordtimestamps = False)
+        results = model.transcribe(audio = f"audios/{audio}", language = "hi", task = "translate", word_timestamps = False)
 
 
         chunks = []
