@@ -4,6 +4,7 @@ import requests
 import os
 import json
 import pandas as pd
+import numpy as np 
 from sklearn.metrics.pairwise import cosine_similarity
 
 def create_embedding(text_list):
@@ -31,8 +32,16 @@ for json_file in jsons:
 # print(my_dicts)
 
 df = pd.DataFrame.from_records(my_dicts)
-print(df.head())
+# print(df.head())
 
 incoming_query = input("Ask your question: ")
 question_embedding = create_embedding([incoming_query])[0]
-print(f"Embedding for the question: {question_embedding}")
+# print(f"Embedding for the question: {question_embedding}")
+
+similarities = cosine_similarity(np.vstack(df['embedding'].values), [question_embedding]).flatten()
+top_results = 3
+max_indx = similarities.argsort()[::-1][0:top_results]
+print(f"Similarities: {max_indx}")
+new_df = df.loc[max_indx]
+print(new_df[['name', 'text', 'number']])
+
