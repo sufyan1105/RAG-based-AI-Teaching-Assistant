@@ -4,6 +4,7 @@ import requests
 import os
 import json
 import pandas as pd
+from sklearn.metrics.pairwise import cosine_similarity
 
 def create_embedding(text_list):
     r = requests.post("http://localhost:11434/api/embed", json = {
@@ -32,4 +33,6 @@ for json_file in jsons:
 df = pd.DataFrame.from_records(my_dicts)
 print(df.head())
 
-
+incoming_query = input("Ask your question: ")
+question_embedding = create_embedding([incoming_query])[0]
+print(f"Embedding for the question: {question_embedding}")
