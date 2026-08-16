@@ -3,3 +3,5 @@ audios/
 jsons/
 videos/
 whisper/
+pycache/
+__pycache__/
