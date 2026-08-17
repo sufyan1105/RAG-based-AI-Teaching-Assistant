@@ -22,7 +22,7 @@ Converts all video files in the `videos/` folder to MP3 audio files.
 Converts each MP3 to a chunked JSON transcript with text and timestamps.
 
 ### Step 4 — Build the vector store (`preprocess_json.py`)
-Reads all JSON files from the `jsons/` folder, generates **bge-m3** embeddings for each chunk via Ollama, and saves everything as a `pandas` DataFrame in `embeddings.joblib`.
+Reads all JSON files from the `jsons/` folder, generates embeddings for each chunk using Ollama **bge-m3**, and saves everything as a `pandas` DataFrame in `embeddings.joblib`.
 
 ### Step 5 — Query the assistant (`process_incomming.py`)
 Loads `embeddings.joblib`, embeds the student's question using **bge-m3**, finds the top 5 most similar chunks via cosine similarity, and feeds them to **Llama 3.2** with a prompt that directs the student to the right video and timestamp. The response is printed and saved to `response.txt`.
@@ -44,7 +44,7 @@ RAG-based-AI-Teaching-Assistant/
 │
 ├── videos/                  # (Expected) Raw course video files
 ├── jsons/                   # (Expected) Chunked transcript JSON files
-└── Unused py files/         # Experimental/draft scripts
+└── Steps before running process_incoming.py/         
 ```
 
 ---
