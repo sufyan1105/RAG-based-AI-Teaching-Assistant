@@ -16,12 +16,13 @@ def create_embedding(text_list):
 def inference(prompt):
     r = requests.post(
           "http://localhost:11434/api/generate",
-          json={"model": "deepseek-r1",
+          json={"model": "llama3.2",
                 "prompt": prompt,
                 "stream": False,}
     )
     response = r.json()
     print(response)
+    return response
 
 if __name__ == "__main__":
   df = joblib.load("embeddings.joblib")
@@ -38,17 +39,22 @@ if __name__ == "__main__":
   new_df = df.loc[max_indx]
 #   print(new_df[["name", "text", "number"]])
 
-prompt = f''' I am teaching web development using sigma web development course. Here are video chunks containing video names, text, number, start_time , end_time an the text at that time .:
-{new_df[["name", "text", "number", "start", "end"]].to_json}
+prompt = f''' I am teaching web development course. Here are video chunks containing video names, text, number, start_time , end_time an the text at that time .:
+{new_df[["name", "text", "number", "start", "end"]].to_json(orient="records")}
 -----------------------------------------------------------
 " {incoming_query} "
-User asked this question related to the video chunks, you have to where and how much content is taught in which video (in which video and at what timestamp) and guide the user to go to that part. If user asks unrelated questions tell him you can only answer questions related to the Course. 
+User asked this question related to the video chunks, you have to answer where and how much content is taught in which video (in which video and at what timestamp) and guide the user to go to that part. If user asks unrelated questions tell him you can only answer questions related to the Course. 
 '''
 
-for index, row in new_df.iterrows():
-    print(f"Name: {row['name']}")
-    print(f"Text: {row['text']}")
-    print(f"Number: {row['number']}")
-    print(f"start_time: {row['start']}")
-    print(f"end_time: {row['end']}")
-    print("--------------------------------------------------")
+response = (inference(prompt))["response"]
+print(f"Response: {response}")
+
+with open("response.txt", "w") as f:
+    f.write(response)
+# for index, row in new_df.iterrows():
+#     print(f"Name: {row['name']}")
+#     print(f"Text: {row['text']}")
+#     print(f"Number: {row['number']}")
+#     print(f"start_time: {row['start']}")
+#     print(f"end_time: {row['end']}")
+#     print("--------------------------------------------------")

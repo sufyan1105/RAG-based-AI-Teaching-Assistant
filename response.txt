@@ -1,0 +1,19 @@
+To provide an accurate response, I'll analyze the provided video chunks.
+
+The user asked: " where is exercise 1 taught ? "
+
+After examining the video chunks, I found that there is no specific information about teaching Exercise 1 in any of the videos. The text "exercise 1" or "one-to-one help" are mentioned, but they seem to be related to the course structure, not a specific exercise.
+
+However, in Video Chunk #2:
+
+ name: "Your First HTML Website"
+text: " I will make a video 1 here."
+number: "2"
+start: 159.08
+end: 160.92
+
+There is some text that might be related to teaching about exercises or one-to-one help ("one-to-one help"). 
+
+The user can guide the user to check Video Chunk #2, as it seems to contain relevant information.
+
+Unfortunately I was not able to find any mention of exercise 1 specifically
