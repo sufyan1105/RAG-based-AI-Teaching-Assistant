@@ -20,9 +20,10 @@ def inference(prompt):
                 "prompt": prompt,
                 "stream": False,}
     )
-    response = r.json()
-    print(response)
-    return response
+    return r.json()
+
+def to_mmss(seconds):
+    return f"{int(seconds // 60)}:{int(seconds % 60):02d}"
 
 if __name__ == "__main__":
   df = joblib.load("embeddings.joblib")
@@ -39,11 +40,11 @@ if __name__ == "__main__":
   new_df = df.loc[max_indx]
 #   print(new_df[["name", "text", "number"]])
 
-prompt = f''' I am teaching web development course. Here are video chunks containing video names, text, number, start_time , end_time an the text at that time .:
-{new_df[["name", "text", "number", "start", "end"]].to_json(orient="records")}
+prompt = f''' I am teaching web development course. Here are video chunks containing video names, text, number, start_time , end_time (in mm:ss) an the text at that time .:
+{new_df[["name", "text", "number", "start", "end"]].assign(start=new_df["start"].apply(to_mmss), end=new_df["end"].apply(to_mmss)).to_json(orient="records")}
 -----------------------------------------------------------
 " {incoming_query} "
-User asked this question related to the video chunks, you have to answer where and how much content is taught in which video (in which video and at what timestamp) and guide the user to go to that part. If user asks unrelated questions tell him you can only answer questions related to the Course. 
+User asked this question related to the video chunks, you have to answer where and how much content is taught in which video (in which video and at what timestamp) and guide the user to go to that part. If user asks unrelated questions tell him you can only answer questions related to the Course. Keep the answer short and precise: 2-4 lines, just the video name, number and timestamps.
 '''
 
 response = (inference(prompt))["response"]
