@@ -95,3 +95,5 @@ Run the assistant without Docker: `pip install -r requirements.txt && python pro
 ## 👤 Author
 
 **Sufyan** — [github.com/sufyan1105](https://github.com/sufyan1105)
+
+<sub>This README was written with the help of Claude (Anthropic).</sub>
