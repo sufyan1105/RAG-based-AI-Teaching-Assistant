@@ -5,4 +5,5 @@ videos/
 whisper/
 pycache/
 __pycache__/
-.vscode/.env
+.vscode/
+.env
