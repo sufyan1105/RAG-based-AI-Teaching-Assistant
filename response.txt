@@ -1,3 +1,3 @@
-To answer the question " where is css taught ? " 
+To answer where and how much content is taught in "Your First HTML Website" video, 
 
-The CSS topic is covered in Video 1: "Your First HTML Website" at timestamps 14:58-14:59 (Video 2, number 2).
+- Content is taught on "Your First HTML Website" video at 14:56-14:57 (0 seconds) and 21:19-21:22 (3 seconds) and 15:14-15:15 (1 second) respectively.
