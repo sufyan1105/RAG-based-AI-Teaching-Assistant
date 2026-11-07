@@ -1,0 +1,9 @@
+.git
+.env
+videos/
+audios/
+jsons/
+__pycache__/
+.vscode/
+.DS_Store
+eval/
