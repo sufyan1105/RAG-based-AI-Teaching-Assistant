@@ -20,6 +20,12 @@ Response: A good LCP score should be 2.5 seconds.
 Video: SEO and Core Web Vitals in HTML / Number: 6 / Start Time: 3:11 / End Time: 3:15
 ```
 
+**Faster on a Mac:** Docker can't use the Apple GPU, so Ollama in a container runs on CPU (~12 s per answer vs ~1 s native in our timing). If you have [Ollama](https://ollama.com) installed natively with both models pulled, point the container at it and skip the Ollama services:
+
+```bash
+APP_OLLAMA_URL=http://host.docker.internal:11434 docker compose run --rm --no-deps app
+```
+
 Settings (Ollama URL, model names, top-k) live in `.env`. Copy `.env.example` to change them.
 
 ## 💡 How it works

@@ -24,7 +24,8 @@ services:
       - path: .env
         required: false
     environment:
-      OLLAMA_URL: http://ollama:11434
+      # Mac: Docker has no GPU access, so point at native Ollama instead (see README).
+      OLLAMA_URL: ${APP_OLLAMA_URL:-http://ollama:11434}
     stdin_open: true
     tty: true
     depends_on:
