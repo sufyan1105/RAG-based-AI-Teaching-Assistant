@@ -1,113 +1,90 @@
 # 🎓 RAG-Based AI Teaching Assistant
 
-A Retrieval-Augmented Generation (RAG) system that acts as an AI teaching assistant for a web development course. Students can ask questions in natural language and the assistant tells them **which video** covers the topic and **at what timestamp** — so they can jump straight to the relevant part.
+Ask a question about a web development course in plain English. The assistant tells you **which video** covers it and **at what timestamp**, so you can jump straight to that part. It runs fully locally: Whisper for transcription, bge-m3 for embeddings, Llama 3.2 for answers, all served by Ollama.
 
----
+## 🚀 Run it (one command)
 
-## 💡 How It Works
-
-The pipeline takes raw course videos all the way to a queryable AI assistant in 5 steps:
-
-```
-Videos → MP3s → JSON Transcripts → Embeddings → LLM Response
-```
-
-### Step 1 — Collect your videos
-Place all your video files into the `videos/` folder.
-
-### Step 2 — Convert videos to MP3 (`video_to_mp3.py`)
-Converts all video files in the `videos/` folder to MP3 audio files.
-
-### Step 3 — Transcribe MP3s to JSON (`mp3_to_json.py`)
-Converts each MP3 to a chunked JSON transcript with text and timestamps.
-
-### Step 4 — Build the vector store (`preprocess_json.py`)
-Reads all JSON files from the `jsons/` folder, generates embeddings for each chunk using Ollama **bge-m3**, and saves everything as a `pandas` DataFrame in `embeddings.joblib`.
-
-### Step 5 — Query the assistant (`process_incomming.py`)
-Loads `embeddings.joblib`, embeds the student's question using **bge-m3**, finds the top 5 most similar chunks via cosine similarity, and feeds them to **Llama 3.2** with a prompt that directs the student to the right video and timestamp. The response is printed and saved to `response.txt`.
-
----
-
-## 📁 Project Structure
-
-```
-RAG-based-AI-Teaching-Assistant/
-│
-├── video_to_mp3.py          # Step 2: Convert video files to MP3
-├── mp3_to_json.py           # Step 3: Transcribe MP3s to chunked JSON
-├── preprocess_json.py       # Step 4: Embed JSON chunks → embeddings.joblib
-├── process_incomming.py     # Step 5: Query handler (RAG + LLM)
-│
-├── embeddings.joblib        # Pre-built vector store
-├── response.txt             # Last generated assistant response
-│
-├── videos/                  # (Expected) Raw course video files
-├── jsons/                   # (Expected) Chunked transcript JSON files
-└── Steps before running process_incoming.py/         
-```
-
----
-
-## 🛠️ Prerequisites
-
-- Python 3.8+
-- [Ollama](https://ollama.com/) installed and running locally
-
-### Pull the required models
+Needs [Docker Desktop](https://www.docker.com/products/docker-desktop/).
 
 ```bash
-ollama pull bge-m3
-ollama pull llama3.2
+docker compose run --rm app
 ```
 
-### Install Python dependencies
+On first start Compose launches Ollama, pulls `bge-m3` and `llama3.2` into a volume (~3 GB, one time), then opens the question prompt. Press Enter on an empty line to quit.
+
+Real example from the evaluation run:
+
+```
+Ask your question: What is a good LCP score?
+Response: A good LCP score should be 2.5 seconds.
+Video: SEO and Core Web Vitals in HTML / Number: 6 / Start Time: 3:11 / End Time: 3:15
+```
+
+Settings (Ollama URL, model names, top-k) live in `.env`. Copy `.env.example` to change them.
+
+## 💡 How it works
+
+```mermaid
+flowchart LR
+    V[Course videos] -->|ffmpeg| A[MP3]
+    A -->|Whisper large-v2<br/>Hindi → English| J[Timestamped JSON chunks]
+    J -->|bge-m3| E[(embeddings.joblib)]
+    Q[Student question] -->|bge-m3| S{Cosine similarity<br/>top 5 chunks}
+    E --> S
+    S --> L[Llama 3.2 prompt]
+    L --> R[Video + timestamp answer]
+```
+
+The indexing steps (left side) run once. `embeddings.joblib` is committed, so the Docker app only runs the query side.
+
+| Service | Role |
+|---|---|
+| `ollama` | Serves bge-m3 and Llama 3.2 |
+| `ollama-pull` | One-shot job that pulls the models on first start |
+| `app` | `process_incomming.py`: retrieve top-5 chunks, prompt the LLM |
+
+## 📊 Evaluation
+
+30 questions written from the three indexed lectures (#2 First HTML Website, #6 SEO & Core Web Vitals, #10 Video/Audio/Media). Each question has a gold time window: the part of the lecture that answers it. Questions and windows are in [`eval/questions.json`](eval/questions.json).
 
 ```bash
-pip install numpy pandas scikit-learn joblib requests
+python eval/run_eval.py   # needs Ollama with bge-m3 + llama3.2 on localhost:11434
 ```
 
----
+| Metric | Result |
+|---|---|
+| **Retrieval hit@3**: a top-3 chunk is from the gold video and inside a gold window | **27 / 30 (90%)** |
+| **Answer supported**: every claim backed by the retrieved passages | **16 yes · 9 partly · 5 no** |
 
-## 🚀 Usage
+Retrieval is scored automatically. Answer support was graded by hand against the retrieved passages; per-question grades and notes are in [`eval/grades.csv`](eval/grades.csv), raw outputs in [`eval/results.jsonl`](eval/results.jsonl). The LLM output is not deterministic, so a re-run can grade differently.
+
+### Where it fails
+
+1. **Vocabulary mismatch: "How can I quickly generate the HTML boilerplate in VS Code?"** The lecture says "put an exclamation mark" and never says "boilerplate". Retrieval matched on "VS Code" and returned chunks about themes, and the answer cited them. Embedding similarity can't bridge words the speaker never used.
+2. **Chunks too small to carry the answer: "What values can the preload attribute take?"** Whisper segments are ~2 seconds long. The top 5 were all sentences that *mention* "preload attribute"; the sentence listing `none / metadata / auto` scored lower. With no values in context, Llama invented them ("the value of the src attribute"). Merging segments into ~30 s windows should fix both this and the many "points to the topic but not the explanation" answers.
+3. **LLM ignores a correct retrieval: "How do I zoom in VS Code using the mouse wheel?"** The right chunk (18:28, "editor mouse wheel zoom") was ranked first, yet the answer sent the user to three unrelated timestamps as numbered "steps". A 3B model follows the prompt loosely; a stricter prompt ("cite only the chunk that answers the question") or a larger model is the next thing to try.
+
+## 🔁 Rebuilding the index (optional)
+
+Only needed for new videos. Requires local Python, `ffmpeg`, `openai-whisper` and Ollama. Scripts are in `Steps before running process_incoming.py/`; run them from the repo root:
 
 ```bash
-# Step 2 - Convert videos to MP3
-python video_to_mp3.py
-
-# Step 3 - Transcribe MP3s to JSON
-python mp3_to_json.py
-
-# Step 4 - Build the vector store
-python preprocess_json.py
-
-# Step 5 - Ask a question
-python process_incomming.py
+python "Steps before running process_incoming.py/video_to_mp3.py"    # videos/ → audios/
+python "Steps before running process_incoming.py/mp3_to_json.py"     # audios/ → jsons/
+python "Steps before running process_incoming.py/preprocess_json.py" # jsons/ → embeddings.joblib
 ```
 
-Example interaction:
+Run the assistant without Docker: `pip install -r requirements.txt && python process_incomming.py`
 
-```
-Ask your question: Where is CSS Grid explained?
-
-Response: CSS Grid is covered in video "05_CSS Grid Basics" starting at 00:03:20.
-```
-
-Steps 2–4 only need to be run once. After `embeddings.joblib` is built, you can run Step 5 repeatedly.
-
----
-
-## 🔧 Tech Stack
+## 🔧 Tech stack
 
 | Component | Tool |
 |---|---|
-| Embedding Model | bge-m3 (via Ollama) |
-| Language Model | Llama 3.2 (via Ollama) |
-| Similarity Search | Cosine Similarity (scikit-learn) |
-| Vector Store | pandas DataFrame + joblib |
-| Inference Runtime | Ollama (local) |
-
----
+| Transcription | Whisper large-v2 (Hindi → English) |
+| Embeddings | bge-m3 via Ollama |
+| LLM | Llama 3.2 (3B) via Ollama |
+| Retrieval | Cosine similarity (scikit-learn) over a pandas DataFrame |
+| Packaging | Docker Compose |
 
 ## 👤 Author
 

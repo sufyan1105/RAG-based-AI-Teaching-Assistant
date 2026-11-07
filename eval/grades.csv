@@ -1,0 +1,31 @@
+id,answer_supported,note
+1,yes,
+2,yes,
+3,partly,second timestamp (0:21) misattributed to the "three files" line
+4,no,cited chunks are about VS Code themes; none mention the ! shortcut
+5,yes,
+6,yes,
+7,yes,
+8,yes,quotes chunks but does not give the fix (link tag)
+9,no,cited 9:46 is about the files existing; nothing about the script tag
+10,no,ignores the correct 18:28 chunk and invents steps
+11,yes,
+12,yes,
+13,yes,
+14,partly,timestamps fine; durations wrong (23:31-23:54 is not 13 s)
+15,partly,never states the expansion; 10:01 chunk is unrelated
+16,yes,
+17,yes,
+18,yes,
+19,partly,"Audits tab / Run Audits" not in any passage (video uses the Lighthouse tab)
+20,yes,
+21,partly,"calls it ""video 1""; content and timestamp supported"
+22,partly,cites 10:06 instead of 9:42 where meta desc is inserted
+23,partly,"calls it ""Video 1, Section 6"""
+24,yes,
+25,yes,cites the intro (0:10) instead of the demo (3:13)
+26,partly,poster attribute is correct but not in the retrieved passages
+27,yes,
+28,no,"invents values (""value of the src attribute""); real values none/metadata/auto not retrieved"
+29,no,cites 9:46 (what SVG is) instead of 10:49 (the fix)
+30,partly,start parameter not in passages; cited 13:40 is the quiz
